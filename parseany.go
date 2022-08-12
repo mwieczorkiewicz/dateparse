@@ -374,10 +374,19 @@ iterRunes:
 					p.setYear()
 				} else {
 					p.ambiguousMD = true
-					p.moi = 0
-					p.molen = i
-					p.setMonth()
-					p.dayi = i + 1
+					if p.preferMonthFirst {
+						if p.molen == 0 {
+							p.molen = i
+							p.setMonth()
+							p.dayi = i + 1
+						}
+					} else {
+						if p.daylen == 0 {
+							p.daylen = i
+							p.setDay()
+							p.moi = i + 1
+						}
+					}
 				}
 
 			case ' ':
@@ -726,6 +735,12 @@ iterRunes:
 					p.yeari = i + 1
 					p.setDay()
 					p.stateDate = dateDigitDotDot
+				} else if p.dayi == 0 && p.yearlen == 0 {
+					// 23.07.2002
+					p.molen = i - p.moi
+					p.yeari = i + 1
+					p.setMonth()
+					p.stateDate = dateDigitDotDot
 				} else {
 					// 2018.09.30
 					//p.molen = 2
@@ -736,7 +751,10 @@ iterRunes:
 				}
 			}
 		case dateDigitDotDot:
-			// iterate all the way through
+			if r == ' ' || r == 'T' {
+				p.stateTime = timeStart
+				break iterRunes
+			}
 		case dateAlpha:
 			// dateAlphaWS
 			//  Mon Jan _2 15:04:05 2006
